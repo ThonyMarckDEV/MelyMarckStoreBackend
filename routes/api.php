@@ -50,7 +50,7 @@ Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () {
   Route::delete('/sessions', [SessionsController::class, 'deleteSession']);
 
   //RUTA PARA CARRITO
-  Route::get('/carrito/{idUsuario}', [CarritoController::class, 'getCarrito']);
+  Route::get('/carrito/cantidad/{idCarrito}', [CarritoController::class, 'getCartItemCount']);
   Route::post('/carrito/detalles', [CarritoController::class, 'addToCarrito']);
 
 });
