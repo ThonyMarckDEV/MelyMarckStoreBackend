@@ -17,12 +17,37 @@ class ProductController extends Controller
             $perPage = 4;
             $page = $request->query('page', 1);
             $subcategoryId = $request->query('subcategory_id');
+            $categoryId = $request->query('category_id');
+            $name = $request->query('name');
+            $minPrice = $request->query('min_price');
+            $maxPrice = $request->query('max_price');
 
             $query = Producto::with(['modelos.stock', 'modelos.imagenes', 'caracteristicasProducto'])
                 ->where('estado', true);
 
+            // Filter by subcategory_id
             if ($subcategoryId) {
                 $query->where('idSubCategoria', $subcategoryId);
+            }
+
+            // Filter by category_id (via subcategorias relationship)
+            if ($categoryId) {
+                $query->whereHas('subcategoria', function ($q) use ($categoryId) {
+                    $q->where('idCategoria', $categoryId);
+                });
+            }
+
+            // Filter by name (partial match)
+            if ($name) {
+                $query->where('nombreProducto', 'like', "%$name%");
+            }
+
+            // Filter by price range
+            if ($minPrice !== null) {
+                $query->where('precio', '>=', $minPrice);
+            }
+            if ($maxPrice !== null) {
+                $query->where('precio', '<=', $maxPrice);
             }
 
             $products = $query->paginate($perPage, ['*'], 'page', $page);
@@ -32,7 +57,7 @@ class ProductController extends Controller
                     'idProducto' => $product->idProducto,
                     'nombreProducto' => $product->nombreProducto,
                     'descripcion' => $product->descripcion,
-                    'precio' => (float) $product->precio, // Convertir a float
+                    'precio' => (float) $product->precio,
                     'caracteristicas' => $product->caracteristicasProducto ? $product->caracteristicasProducto->caracteristicas : null,
                     'modelos' => $product->modelos->map(function ($modelo) {
                         Log::info('Modelo Data:', [

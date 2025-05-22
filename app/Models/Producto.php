@@ -22,14 +22,14 @@ class Producto extends Model
         'descripcion',
         'precio',
         'stock',
-        'idCategoria', // Clave foránea hacia la tabla categorias
+        'idSubCategoria', 
         'estado'
     ];
 
     // Relación de muchos a uno hacia Categoria
-    public function categoria()
+    public function subcategoria()
     {
-        return $this->belongsTo(Categoria::class, 'idCategoria', 'idCategoria');
+        return $this->belongsTo(SubCategoria::class, 'idSubCategoria', 'idSubCategoria');
     }
 
     public function detallesCarrito()
