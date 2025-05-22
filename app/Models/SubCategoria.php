@@ -7,17 +7,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Categoria extends Model
+class SubCategoria extends Model
 {
     use HasFactory;
 
-    protected $table = 'categorias';
-    protected $primaryKey = 'idCategoria';
+    protected $table = 'subcategorias';
+    protected $primaryKey = 'idSubCategoria';
 
     public $timestamps = false;
 
     protected $fillable = [
-        'nombreCategoria',
+        'nombreSubCategoria',
         'imagen',
         'estado',
     ];
@@ -28,10 +28,10 @@ class Categoria extends Model
         return $this->hasMany(Producto::class, 'idCategoria', 'idCategoria');
     }
 
-    // Relationship with SubCategoria
-    public function subcategorias()
+   // Relationship with Categoria
+    public function categoria()
     {
-        return $this->hasMany(SubCategoria::class, 'idCategoria', 'idCategoria');
+        return $this->belongsTo(Categoria::class, 'idCategoria', 'idCategoria');
     }
 
     public function scopeActive($query)

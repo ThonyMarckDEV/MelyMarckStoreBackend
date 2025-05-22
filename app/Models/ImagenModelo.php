@@ -1,24 +1,24 @@
 <?php
 
-// app/Models/Stock.php
+// app/Models/ImagenModelo.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Stock extends Model
+class ImagenModelo extends Model
 {
     use HasFactory;
 
-    protected $table = 'stock';
-    protected $primaryKey = 'idStock';
+    protected $table = 'imagenes_modelo';
+    protected $primaryKey = 'idImagen';
 
     public $timestamps = false;
 
     protected $fillable = [
-        'idModelo',
-        'cantidad',
+        'urlImagen',
+        'idModelo', // Clave foránea hacia modelos
     ];
 
     // Relación de muchos a uno hacia Modelo
@@ -26,10 +26,4 @@ class Stock extends Model
     {
         return $this->belongsTo(Modelo::class, 'idModelo', 'idModelo');
     }
-
-    // Relación de muchos a uno hacia Talla
-    // public function talla()
-    // {
-    //     return $this->belongsTo(Talla::class, 'idTalla', 'idTalla');
-    // }
 }

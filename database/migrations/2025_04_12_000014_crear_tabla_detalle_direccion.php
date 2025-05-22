@@ -14,10 +14,8 @@ class CrearTablaDetalleDireccion extends Migration
             $table->string('departamento');
             $table->string('provincia');
             $table->string('distrito');
-            $table->string('direccion');
+            $table->text('direccion_shalom');
             $table->string('estado')->default('usando');
-            $table->decimal('latitud', 10, 8);
-            $table->decimal('longitud', 11, 8);
 
             // Definición de la clave foránea
             $table->foreign('idUsuario')

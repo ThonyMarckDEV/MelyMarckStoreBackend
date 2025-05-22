@@ -13,6 +13,7 @@ class CrearTablaCategorias extends Migration
         Schema::create('categorias', function (Blueprint $table) {
             $table->bigIncrements('idCategoria'); // Clave primaria con bigIncrements (unsignedBigInteger)
             $table->string('nombreCategoria');
+                   $table->string('imagen')->nullable(); // Imagen puede ser nula
             $table->boolean('estado')->default(true); // Estado por defecto a true
         });
     }

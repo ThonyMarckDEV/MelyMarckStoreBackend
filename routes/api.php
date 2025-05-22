@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\AuthGoogleController;
+use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SessionsController;
+use App\Http\Controllers\SubCategoriesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +32,15 @@ Route::post('/refresh', [AuthController::class, 'refresh']);
 Route::post('/validate-refresh-token', [AuthController::class, 'validateRefreshToken']);
 
 Route::post('/usuarios', [UserController::class, 'store']);
+
+// Rutas publicas para home
+Route::get('/categories', [CategoriesController::class, 'index']);
+Route::get('/subcategories', [SubCategoriesController::class, 'index']);
+
+// Rutas publicas para products
+Route::get('/products', [ProductController::class, 'index']);
+
+
 
 // RUTAS PARA X VALIDADA POR MIDDLEWARE AUTH (PARA TOKEN JWT) Y CHECKROLE (PARA VALIDAR ROL DEL TOKEN)
 Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () { 
