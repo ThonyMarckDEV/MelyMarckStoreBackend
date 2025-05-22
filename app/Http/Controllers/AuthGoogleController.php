@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Carrito;
 use App\Models\Datos;
 use App\Models\User;
+use Firebase\JWT\JWT;
 use Google_Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,7 @@ use Illuminate\Support\Str;
 class AuthGoogleController extends Controller
 {
    
-    public function googleLogin(Request $request)
+   public function googleLogin(Request $request)
     {
         // Validar el token de Google
         $validator = Validator::make($request->all(), [
@@ -46,16 +48,18 @@ class AuthGoogleController extends Controller
 
             // Buscar o crear el registro en la tabla datos
             $dato = Datos::where('email', $email)->first();
+            $isNewUser = false; // Bandera para identificar si es un usuario nuevo
             if (!$dato) {
                 $dato = Datos::create([
                     'nombre' => $name,
                     'email' => $email,
                 ]);
+                $isNewUser = true; // Marcar como nuevo si no existe el correo
             }
 
             // Buscar o crear el usuario
             $user = User::where('username', $email)->first();
-            if (!$user) {
+            if (!$user && $isNewUser) {
                 $user = User::create([
                     'username' => $email,
                     'password' => Hash::make(Str::random(16)),
@@ -63,7 +67,12 @@ class AuthGoogleController extends Controller
                     'idRol' => 2,
                     'estado' => 1,
                 ]);
-            } elseif ($user->estado !== 1) {
+
+                // Crear carrito para el nuevo usuario
+                Carrito::create([
+                    'idUsuario' => $user->idUsuario,
+                ]);
+            } elseif ($user && $user->estado !== 1) {
                 return response()->json([
                     'message' => 'Error: estado del usuario inactivo',
                 ], 403);
@@ -88,6 +97,7 @@ class AuthGoogleController extends Controller
                 'username' => $user->username,
                 'nombre' => $dato->nombre,
                 'email' => $dato->email,
+                'idCarrito' => $user->carrito->idCarrito,
             ];
 
             // Refresh token payload
@@ -102,11 +112,12 @@ class AuthGoogleController extends Controller
                 'type' => 'refresh',
                 'rol' => $user->rol->nombre,
                 'username' => $user->username,
+                'idCarrito' => $user->carrito->idCarrito,
             ];
 
             // Generar tokens
-            $accessToken = \Firebase\JWT\JWT::encode($accessPayload, $secret, 'HS256');
-            $refreshToken = \Firebase\JWT\JWT::encode($refreshPayload, $secret, 'HS256');
+            $accessToken = JWT::encode($accessPayload, $secret, 'HS256');
+            $refreshToken = JWT::encode($refreshPayload, $secret, 'HS256');
 
             // Gestionar sesiones activas (máximo 3)
             $activeSessions = DB::table('refresh_tokens')

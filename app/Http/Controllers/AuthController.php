@@ -71,6 +71,7 @@ class AuthController extends Controller
             'username' => $user->username,
             'nombre' => $user->dato->nombre,
             'email' => $user->dato->email,
+            'idCarrito' => $user->carrito->idCarrito,
         ];
 
         // Refresh token payload
@@ -85,6 +86,7 @@ class AuthController extends Controller
             'type' => 'refresh',
             'rol' => $user->rol->nombre,
             'username' => $user->username,
+            'idCarrito' => $user->carrito->idCarrito,
         ];
 
         // Generar tokens

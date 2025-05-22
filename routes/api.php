@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthGoogleController;
+use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SessionsController;
@@ -44,9 +45,13 @@ Route::get('/products', [ProductController::class, 'index']);
 
 // RUTAS PARA X VALIDADA POR MIDDLEWARE AUTH (PARA TOKEN JWT) Y CHECKROLE (PARA VALIDAR ROL DEL TOKEN)
 Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () { 
-// RUTAS PARA Sesiones
+  // RUTAS PARA Sesiones
   Route::get('/sessions', [SessionsController::class, 'getActiveSessions']);
   Route::delete('/sessions', [SessionsController::class, 'deleteSession']);
+
+  //RUTA PARA CARRITO
+  Route::get('/carrito/{idUsuario}', [CarritoController::class, 'getCarrito']);
+  Route::post('/carrito/detalles', [CarritoController::class, 'addToCarrito']);
 
 });
 

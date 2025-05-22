@@ -16,7 +16,7 @@ class CarritoDetalle extends Model
     public $timestamps = false;
 
     // Permitir asignación masiva para estos campos
-    protected $fillable = ['idCarrito', 'idProducto', 'idModelo', 'idTalla', 'cantidad', 'subtotal'];
+    protected $fillable = ['idCarrito', 'idProducto', 'idModelo', 'cantidad', 'subtotal'];
     
     public function carrito()
     {
@@ -34,8 +34,4 @@ class CarritoDetalle extends Model
         return $this->belongsTo(Modelo::class, 'idModelo', 'idModelo');  // Verifica que el segundo parámetro sea 'idModelo'
     }
     
-    // public function talla()
-    // {
-    //     return $this->belongsTo(Talla::class, 'idTalla', 'idTalla');  // Asegúrate de que el segundo parámetro esté bien configurado
-    // }
 }

@@ -78,9 +78,11 @@ class User extends Authenticatable implements JWTSubject
      */
     public function getJWTCustomClaims()
     {
+        $carrito = $this->carrito()->first();
         return [
             'rol' => $this->rol()->first()->nombre,
             'username' => $this->username,
+            'idCarrito' => $carrito ? $carrito->idCarrito : null, // Incluir idCarrito
         ];
     }
 
@@ -98,6 +100,11 @@ class User extends Authenticatable implements JWTSubject
     public function rol()
     {
         return $this->belongsTo(Rol::class, 'idRol', 'idRol');
+    }
+
+    public function carrito()
+    {
+        return $this->hasOne(Carrito::class, 'idUsuario', 'idUsuario');
     }
 
 }
