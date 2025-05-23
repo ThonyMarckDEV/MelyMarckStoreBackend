@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthGoogleController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\CategoriesController;
+use App\Http\Controllers\DetalleCarritoController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SessionsController;
 use App\Http\Controllers\SubCategoriesController;
@@ -42,7 +43,6 @@ Route::get('/subcategories', [SubCategoriesController::class, 'index']);
 Route::get('/products', [ProductController::class, 'index']);
 
 
-
 // RUTAS PARA X VALIDADA POR MIDDLEWARE AUTH (PARA TOKEN JWT) Y CHECKROLE (PARA VALIDAR ROL DEL TOKEN)
 Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () { 
   // RUTAS PARA Sesiones
@@ -52,6 +52,12 @@ Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () {
   //RUTA PARA CARRITO
   Route::get('/carrito/cantidad/{idCarrito}', [CarritoController::class, 'getCartItemCount']);
   Route::post('/carrito/detalles', [CarritoController::class, 'addToCarrito']);
+
+  //RUTA PARA DETALLE CARRITO
+  Route::get('/cart/{idCarrito}/details', [DetalleCarritoController::class, 'index']);
+  Route::post('/cart/{idCarrito}/details', [DetalleCarritoController::class, 'store']);
+  Route::put('/cart/details/{idDetalle}', [DetalleCarritoController::class, 'update']);
+  Route::delete('/cart/details/{idDetalle}', [DetalleCarritoController::class, 'destroy']);
 
 });
 

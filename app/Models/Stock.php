@@ -27,9 +27,4 @@ class Stock extends Model
         return $this->belongsTo(Modelo::class, 'idModelo', 'idModelo');
     }
 
-    // Relación de muchos a uno hacia Talla
-    // public function talla()
-    // {
-    //     return $this->belongsTo(Talla::class, 'idTalla', 'idTalla');
-    // }
 }
