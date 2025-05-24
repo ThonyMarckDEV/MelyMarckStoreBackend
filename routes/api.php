@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthGoogleController;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\DetalleCarritoController;
+use App\Http\Controllers\DirectionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SessionsController;
 use App\Http\Controllers\SubCategoriesController;
@@ -60,6 +61,13 @@ Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () {
   Route::post('/cart/{idCarrito}/details', [DetalleCarritoController::class, 'store']);
   Route::put('/cart/details/{idDetalle}', [DetalleCarritoController::class, 'update']);
   Route::delete('/cart/details/{idDetalle}', [DetalleCarritoController::class, 'destroy']);
+
+  //RUTAS PARA DIRECCIONES
+  Route::get('/directions', [DirectionController::class, 'index']);
+  Route::post('/directions', [DirectionController::class, 'store']);
+  Route::put('/directions/{id}', [DirectionController::class, 'update']);
+  Route::delete('/directions/{id}', [DirectionController::class, 'destroy']);
+  Route::patch('/directions/{id}/select', [DirectionController::class, 'select']);
 
 });
 
