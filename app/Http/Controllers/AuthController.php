@@ -180,12 +180,13 @@ class AuthController extends Controller
                 'jti' => Str::random(16),
                 'sub' => $user->idUsuario,
                 'prv' => sha1(config('app.key')),
-                // Custom claims del usuario
                 'rol' => $user->rol->nombre,
-                'username' => $user->username,
-                // Otros atributos del usuario que quieras incluir
-                'nombre' => $user->datos->nombre, 
                 'email' => $user->datos->email,
+                'email_verified' => $user->datos->email_verified,
+                'nombre' => $user->datos->nombre,
+                'apellido' => $user->datos->apellido,
+                'idCarrito' => $user->carrito->idCarrito,
+                'google_user' => $user->datos->google_user,
             ];
             
             // Generar nuevo token de acceso usando Firebase JWT
