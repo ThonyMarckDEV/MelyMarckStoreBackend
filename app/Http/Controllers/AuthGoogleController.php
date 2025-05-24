@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Carrito;
 use App\Models\Datos;
 use App\Models\User;
-use Firebase\JWT\JWT;
 use Google_Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -117,6 +116,7 @@ class AuthGoogleController extends Controller
                 'jti' => Str::random(16),
                 'sub' => $user->idUsuario,
                 'prv' => sha1(config('app.key')),
+                'type' => 'refresh',
                 'rol' => $user->rol->nombre,
                 'email' => $user->datos->email,
                 'email_verified' => $user->datos->email_verified,
@@ -127,8 +127,8 @@ class AuthGoogleController extends Controller
             ];
 
             // Generar tokens
-            $accessToken = JWT::encode($accessPayload, $secret, 'HS256');
-            $refreshToken = JWT::encode($refreshPayload, $secret, 'HS256');
+            $accessToken = \Firebase\JWT\JWT::encode($accessPayload, $secret, 'HS256');
+            $refreshToken = \Firebase\JWT\JWT::encode($refreshPayload, $secret, 'HS256');
 
             // Gestionar sesiones activas (máximo 3)
             $activeSessions = DB::table('refresh_tokens')
