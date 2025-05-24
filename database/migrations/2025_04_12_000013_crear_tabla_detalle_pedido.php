@@ -26,12 +26,6 @@ class CrearTablaDetallePedido extends Migration
             ->references('idModelo')
             ->on('modelos') // Cambia 'modelos' por el nombre correcto de la tabla de modelos
             ->onDelete('cascade');
-
-            // // Relación con Talla (si la tabla tallas existe)
-            // $table->foreign('idTalla')
-            // ->references('idTalla')
-            // ->on('tallas') // Cambia 'tallas' por el nombre correcto de la tabla de tallas
-            // ->onDelete('cascade');
         });
     }
 
