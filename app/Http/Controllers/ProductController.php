@@ -113,4 +113,52 @@ class ProductController extends Controller
             ], 500);
         }
     }
+
+    public function getNewProducts()
+    {
+        try {
+            $products = Producto::with(['modelos.imagenes'])
+                ->where('estado', true)
+                ->orderBy('created_at', 'desc') // Order by creation date to get newest
+                ->take(5) // Limit to 5 products
+                ->get();
+
+            $formattedProducts = $products->map(function ($product) {
+                // Get the first model with images
+                $modelo = $product->modelos->first();
+                $imagen = $modelo && $modelo->imagenes->isNotEmpty()
+                    ? $modelo->imagenes->first()->urlImagen
+                    : 'https://salonlfc.com/wp-content/uploads/2018/01/image-not-found-scaled.png';
+
+                return [
+                    'idProducto' => $product->idProducto,
+                    'nombreProducto' => $product->nombreProducto,
+                    'imagen' => $imagen,
+                    'modelos' => $modelo ? [[
+                        'idModelo' => $modelo->idModelo,
+                        'nombreModelo' => $modelo->nombreModelo,
+                        'imagenes' => $modelo->imagenes->map(function ($img) {
+                            return [
+                                'idImagen' => $img->idImagen,
+                                'urlImagen' => $img->urlImagen,
+                            ];
+                        })->toArray(),
+                    ]] : [],
+                ];
+            })->toArray();
+
+            return response()->json([
+                'success' => true,
+                'data' => $formattedProducts,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener productos nuevos:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener productos nuevos: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    
 }

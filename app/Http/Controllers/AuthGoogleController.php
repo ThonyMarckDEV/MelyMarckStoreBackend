@@ -61,7 +61,6 @@ class AuthGoogleController extends Controller
             $user = User::where('username', $email)->first();
             if (!$user && $isNewUser) {
                 $user = User::create([
-                    'username' => $email,
                     'password' => Hash::make(Str::random(16)),
                     'idDatos' => $dato->idDatos,
                     'idRol' => 2,

@@ -38,6 +38,8 @@ Route::post('/usuarios', [UserController::class, 'store']);
 // Rutas publicas para home
 Route::get('/categories', [CategoriesController::class, 'index']);
 Route::get('/subcategories', [SubCategoriesController::class, 'index']);
+Route::get('/new-products', [ProductController::class, 'getNewProducts']);
+
 
 // Rutas publicas para products
 Route::get('/products', [ProductController::class, 'index']);

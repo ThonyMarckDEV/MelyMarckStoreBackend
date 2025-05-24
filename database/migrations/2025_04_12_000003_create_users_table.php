@@ -9,7 +9,6 @@ return new class extends Migration {
     {
         Schema::create('usuarios', function (Blueprint $table) {
             $table->bigIncrements('idUsuario');
-            $table->string('username')->unique();
             $table->string('password');
             $table->unsignedBigInteger('idDatos')->nullable();
             $table->unsignedBigInteger('idRol')->default(2); // Por defecto 2 que es cliente

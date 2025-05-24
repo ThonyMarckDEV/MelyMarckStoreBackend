@@ -22,7 +22,7 @@ class AuthController extends Controller
     {
         // Validar los datos de la solicitud
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string',
+            'email' => 'required|string',
             'password' => 'required|string',
             'remember_me' => 'boolean',
         ]);
@@ -34,8 +34,8 @@ class AuthController extends Controller
             ], 400);
         }
 
-        // Buscar el usuario por su 'username'
-        $user = User::where('username', $request->username)->first();
+        // Buscar el usuario por su 'email'
+        $user = User::where('email', $request->email)->first();
 
         // Si el usuario no existe o la contraseña no es válida
         if (!$user || !Hash::check($request->password, $user->password)) {

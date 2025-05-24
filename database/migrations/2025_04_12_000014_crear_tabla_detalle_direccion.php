@@ -15,7 +15,8 @@ class CrearTablaDetalleDireccion extends Migration
             $table->string('provincia');
             $table->string('distrito');
             $table->text('direccion_shalom');
-            $table->string('estado')->default('usando');
+            $table->boolean('estado')->comment('0: no usando, 1: usando')->default(1);
+            $table->boolean('recojo_local')->default(0)->comment('0: no recojo en local, 1: recojo en local');
 
             // Definición de la clave foránea
             $table->foreign('idUsuario')

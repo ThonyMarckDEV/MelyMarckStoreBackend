@@ -17,6 +17,7 @@ class CrearTablaProductos extends Migration
             $table->decimal('precio', 8, 2);
             // Nueva columna 'estado' de tipo string con valor predeterminado 'activo'
             $table->boolean('estado')->default(true);
+            $table->timestamps();
 
             // Clave foránea
             $table->unsignedBigInteger('idSubCategoria');

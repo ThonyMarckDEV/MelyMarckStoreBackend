@@ -81,7 +81,6 @@ class User extends Authenticatable implements JWTSubject
         $carrito = $this->carrito()->first();
         return [
             'rol' => $this->rol()->first()->nombre,
-            'username' => $this->username,
             'idCarrito' => $carrito ? $carrito->idCarrito : null, // Incluir idCarrito
         ];
     }

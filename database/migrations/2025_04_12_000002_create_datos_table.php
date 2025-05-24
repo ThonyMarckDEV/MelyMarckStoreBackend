@@ -10,10 +10,9 @@ return new class extends Migration
     {
         Schema::create('datos', function (Blueprint $table) {
             $table->bigIncrements('idDatos');
-            $table->string('nombre')->nullable();
-            $table->string('apellido')->nullable();
-            $table->string('email')->nullable()->unique();
-            $table->string('direccion')->nullable();
+            $table->string('nombre');
+            $table->string('apellido');
+            $table->string('email')->unique();
             $table->string('dni')->nullable();
             $table->string('ruc')->nullable();
             $table->string('telefono')->nullable();

@@ -106,7 +106,7 @@ class CarritoController extends Controller
 
             return response()->json(['totalItems' => $totalItems], 200);
         } catch (\Exception $e) {
-            \Log::error('Error in getCartItemCount: ' . $e->getMessage());
+            //Log::error('Error in getCartItemCount: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Error al obtener la cantidad de productos en el carrito',
                 'error' => $e->getMessage(),
