@@ -32,10 +32,11 @@ class Datos extends Model
         'nombre',
         'apellido',
         'email',
-        'direccion',
+        'email_verified',
         'dni',
         'ruc',
         'telefono',
+        'google_user'
     ];
 
     /**

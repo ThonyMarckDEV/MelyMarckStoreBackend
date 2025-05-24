@@ -3,21 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Firebase\JWT\JWT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\TokenExpiredException;
-use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Tymon\JWTAuth\Facades\JWTFactory;
 
 
 class AuthController extends Controller
 {
-   
     public function login(Request $request)
     {
         // Validar los datos de la solicitud
@@ -34,8 +31,10 @@ class AuthController extends Controller
             ], 400);
         }
 
-        // Buscar el usuario por su 'email'
-        $user = User::where('email', $request->email)->first();
+        // Buscar el usuario por su 'email' en la tabla datos
+        $user = User::whereHas('datos', function ($query) use ($request) {
+            $query->where('email', $request->email);
+        })->first();
 
         // Si el usuario no existe o la contraseña no es válida
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -68,30 +67,35 @@ class AuthController extends Controller
             'sub' => $user->idUsuario,
             'prv' => sha1(config('app.key')),
             'rol' => $user->rol->nombre,
-            'username' => $user->username,
-            'nombre' => $user->dato->nombre,
-            'email' => $user->dato->email,
+            'email' => $user->datos->email,
+            'email_verified' => $user->datos->email_verified,
+            'nombre' => $user->datos->nombre,
+            'apellido' => $user->datos->apellido,
             'idCarrito' => $user->carrito->idCarrito,
+            'google_user' => $user->datos->google_user,
         ];
 
         // Refresh token payload
         $refreshPayload = [
             'iss' => config('app.url'),
             'iat' => $now,
-            'exp' => $now + $refreshTTL,
+            'exp' => $now + $expiresIn,
             'nbf' => $now,
             'jti' => Str::random(16),
             'sub' => $user->idUsuario,
             'prv' => sha1(config('app.key')),
-            'type' => 'refresh',
             'rol' => $user->rol->nombre,
-            'username' => $user->username,
+            'email' => $user->datos->email,
+            'email_verified' => $user->datos->email_verified,
+            'nombre' => $user->datos->nombre,
+            'apellido' => $user->datos->apellido,
             'idCarrito' => $user->carrito->idCarrito,
+            'google_user' => $user->datos->google_user,
         ];
 
         // Generar tokens
-        $accessToken = \Firebase\JWT\JWT::encode($accessPayload, $secret, 'HS256');
-        $refreshToken = \Firebase\JWT\JWT::encode($refreshPayload, $secret, 'HS256');
+        $accessToken = JWT::encode($accessPayload, $secret, 'HS256');
+        $refreshToken = JWT::encode($refreshPayload, $secret, 'HS256');
 
         // Gestionar sesiones activas (máximo 3)
         $activeSessions = DB::table('refresh_tokens')

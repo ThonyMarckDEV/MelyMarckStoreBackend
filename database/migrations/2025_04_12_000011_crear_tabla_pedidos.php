@@ -13,16 +13,13 @@ class CrearTablaPedidos extends Migration
             $table->id('idPedido')->unsigned();;
             $table->unsignedBigInteger('idUsuario');
             $table->decimal('total', 10, 2);
-            $table->string('estado', 255)->default('pendiente');
+            $table->boolean('estado')->default('0')->comment('0: pendiente pago, 1:aprobando pago ,  2: en preparacion, 3: enviado, 4: listo para recoger (estado si es recogo entienda), 5: cancelado ');
+            $table->boolean('recojo_local')->default(0)->comment('0: no recojo en local, 1: recojo en local');
             $table->string('departamento');
             $table->string('distrito');
             $table->string('provincia');
-            $table->string('direccion', 255); 
-            $table->decimal('latitud', 10, 8);
-            $table->decimal('longitud', 11, 8);
+            $table->text('direccion_shalom'); 
             $table->timestamp('fecha_pedido')->nullable()->default(DB::raw('CURRENT_TIMESTAMP'));
-            $table->string('tipo_comprobante',255)->nullable();
-            $table->string('ruc', 11)->nullable();
 
             // Claves foráneas
             $table->foreign('idUsuario')->references('idUsuario')->on('usuarios')->onDelete('cascade');

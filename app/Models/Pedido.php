@@ -19,21 +19,18 @@ class Pedido extends Model
         'idUsuario',
         'total',
         'estado',
+        'recojo_local',
         'departamento',
         'distrito',
         'provincia',
-        'direccion',
-        'latitud',
-        'longitud',
+        'direccion_shalom',
         'fecha_pedido',
-        'tipo_comprobante',
-        'ruc',
     ];
 
      // Relación con el modelo Usuario
      public function usuario()
      {
-         return $this->belongsTo(Usuario::class, 'idUsuario', 'idUsuario');
+         return $this->belongsTo(User::class, 'idUsuario', 'idUsuario');
      }
  
 

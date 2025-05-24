@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 class AuthGoogleController extends Controller
 {
    
-   public function googleLogin(Request $request)
+       public function googleLogin(Request $request)
     {
         // Validar el token de Google
         $validator = Validator::make($request->all(), [
@@ -44,21 +44,28 @@ class AuthGoogleController extends Controller
 
             // Obtener datos del usuario desde el token
             $email = $payload['email'];
-            $name = $payload['name'];
+            $firstName = $payload['given_name'] ?? null; // Extract first name
+            $lastName = $payload['family_name'] ?? null; // Extract last name
 
             // Buscar o crear el registro en la tabla datos
             $dato = Datos::where('email', $email)->first();
             $isNewUser = false; // Bandera para identificar si es un usuario nuevo
             if (!$dato) {
                 $dato = Datos::create([
-                    'nombre' => $name,
+                    'nombre' => $firstName,
+                    'apellido' => $lastName,
                     'email' => $email,
+                    'email_verified' => 1, // Indicar que el email está verificado
+                    'google_user' => 1, // Indicar que es un usuario de Google
                 ]);
                 $isNewUser = true; // Marcar como nuevo si no existe el correo
             }
 
             // Buscar o crear el usuario
-            $user = User::where('username', $email)->first();
+            $user = User::whereHas('datos', function ($query) use ($email) {
+                $query->where('email', $email);
+            })->first();
+
             if (!$user && $isNewUser) {
                 $user = User::create([
                     'password' => Hash::make(Str::random(16)),
@@ -93,25 +100,30 @@ class AuthGoogleController extends Controller
                 'sub' => $user->idUsuario,
                 'prv' => sha1(config('app.key')),
                 'rol' => $user->rol->nombre,
-                'username' => $user->username,
-                'nombre' => $dato->nombre,
-                'email' => $dato->email,
+                'email' => $user->datos->email,
+                'email_verified' => $user->datos->email_verified,
+                'nombre' => $user->datos->nombre,
+                'apellido' => $user->datos->apellido,
                 'idCarrito' => $user->carrito->idCarrito,
+                'google_user' => $user->datos->google_user,
             ];
 
             // Refresh token payload
             $refreshPayload = [
                 'iss' => config('app.url'),
                 'iat' => $now,
-                'exp' => $now + $refreshTTL,
+                'exp' => $now + $expiresIn,
                 'nbf' => $now,
                 'jti' => Str::random(16),
                 'sub' => $user->idUsuario,
                 'prv' => sha1(config('app.key')),
-                'type' => 'refresh',
                 'rol' => $user->rol->nombre,
-                'username' => $user->username,
+                'email' => $user->datos->email,
+                'email_verified' => $user->datos->email_verified,
+                'nombre' => $user->datos->nombre,
+                'apellido' => $user->datos->apellido,
                 'idCarrito' => $user->carrito->idCarrito,
+                'google_user' => $user->datos->google_user,
             ];
 
             // Generar tokens

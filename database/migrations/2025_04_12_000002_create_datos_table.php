@@ -13,9 +13,11 @@ return new class extends Migration
             $table->string('nombre');
             $table->string('apellido');
             $table->string('email')->unique();
+            $table->boolean('email_verified')->default(0)->comment('0: No, 1: Sí');
             $table->string('dni')->nullable();
             $table->string('ruc')->nullable();
             $table->string('telefono')->nullable();
+            $table->boolean('google_user')->default(0)->comment('0: No, 1: Sí');
             $table->timestamps();
         });
     }
