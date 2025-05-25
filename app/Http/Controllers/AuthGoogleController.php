@@ -111,7 +111,7 @@ class AuthGoogleController extends Controller
             $refreshPayload = [
                 'iss' => config('app.url'),
                 'iat' => $now,
-                'exp' => $now + $expiresIn,
+                'exp' => $now + $refreshTTL,
                 'nbf' => $now,
                 'jti' => Str::random(16),
                 'sub' => $user->idUsuario,
