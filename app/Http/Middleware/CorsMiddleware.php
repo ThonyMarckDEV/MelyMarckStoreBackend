@@ -10,7 +10,9 @@ class CorsMiddleware
     {
         $allowedOrigins = [
             'https://melymarckstore.vercel.app',
-            'http://localhost:3000'
+            'https://melymarckstore.thonymarckdev.online',
+            'http://localhost:3000',
+            'http://192.168.18.47:8003',
         ];
 
         $origin = $request->headers->get('Origin');
