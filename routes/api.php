@@ -12,7 +12,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-
+use App\Http\Controllers\PedidosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +68,9 @@ Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () {
   Route::put('/directions/{id}', [DirectionController::class, 'update']);
   Route::delete('/directions/{id}', [DirectionController::class, 'destroy']);
   Route::patch('/directions/{id}/select', [DirectionController::class, 'select']);
+
+  //RUTAS PARA PEDIDOS
+  Route::post('/orders', [PedidosController::class, 'createOrder']);
 
 });
 

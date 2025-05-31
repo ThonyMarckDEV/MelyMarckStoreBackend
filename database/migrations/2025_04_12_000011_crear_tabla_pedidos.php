@@ -10,7 +10,7 @@ class CrearTablaPedidos extends Migration
     public function up()
     {
         Schema::create('pedidos', function (Blueprint $table) {
-            $table->id('idPedido')->unsigned();;
+            $table->id('idPedido')->unsigned();
             $table->unsignedBigInteger('idUsuario');
             $table->decimal('total', 10, 2);
             $table->boolean('estado')->default('0')->comment('0: pendiente pago, 1:aprobando pago ,  2: en preparacion, 3: enviado, 4: listo para recoger (estado si es recogo entienda), 5: cancelado ');

@@ -21,10 +21,11 @@ class CrearTablaDetallePedido extends Migration
             // Claves foráneas
             $table->foreign('idPedido')->references('idPedido')->on('pedidos')->onDelete('cascade');
             $table->foreign('idProducto')->references('idProducto')->on('productos');
-            // Relación con Modelo (si la tabla modelos existe)
+
+            // Relación con Modelo 
             $table->foreign('idModelo')
             ->references('idModelo')
-            ->on('modelos') // Cambia 'modelos' por el nombre correcto de la tabla de modelos
+            ->on('modelos')
             ->onDelete('cascade');
         });
     }
