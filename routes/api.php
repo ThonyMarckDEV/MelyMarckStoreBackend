@@ -71,7 +71,8 @@ Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () {
 
   //RUTAS PARA PEDIDOS
   Route::post('/orders', [PedidosController::class, 'createOrder']);
-
+  Route::get('/orders', [PedidosController::class, 'index']);
+  Route::get('/orders/{id}', [PedidosController::class, 'show']);
 });
 
 // RUTAS PARA X VALIDADA POR MIDDLEWARE AUTH (PARA TOKEN JWT) Y CHECKROLE (PARA VALIDAR ROL DEL TOKEN)
