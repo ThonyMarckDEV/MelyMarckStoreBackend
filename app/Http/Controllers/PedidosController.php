@@ -10,27 +10,22 @@ use App\Models\CarritoDetalle;
 use App\Models\DetalleDireccion;
 use App\Models\Pedido;
 use Illuminate\Support\Facades\Auth;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Carbon\Carbon;
 
 class PedidosController extends Controller
 {
     /**
      * Create a new order from cart details.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function createOrder(Request $request)
     {
         try {
-            // Validate request data
             $request->validate([
                 'idCarrito' => 'required|exists:carrito,idCarrito',
                 'pickupMethod' => 'required|in:delivery,store',
                 'idDireccion' => 'required_if:pickupMethod,delivery|exists:detalle_direcciones,idDireccion',
             ]);
 
-            // Get authenticated user
             $user = Auth::user();
             if (!$user) {
                 return response()->json([
@@ -43,7 +38,6 @@ class PedidosController extends Controller
             $pickupMethod = $request->input('pickupMethod');
             $idDireccion = $request->input('idDireccion');
 
-            // Fetch cart details
             $cartDetails = CarritoDetalle::where('idCarrito', $idCarrito)
                 ->with('producto', 'modelo')
                 ->get();
@@ -55,24 +49,24 @@ class PedidosController extends Controller
                 ], 400);
             }
 
-            // Calculate total
             $total = $cartDetails->sum(function ($detail) {
                 return $detail->subtotal;
             });
 
-            // Start database transaction
             DB::beginTransaction();
 
-            // Prepare order data
             $orderData = [
                 'idUsuario' => $user->idUsuario,
                 'total' => $total,
-                'estado' => 0, // Pending payment
+                'estado' => 0,
                 'recojo_local' => $pickupMethod === 'store' ? 1 : 0,
                 'fecha_pedido' => now(),
+                'departamento' => '',
+                'distrito' => '',
+                'provincia' => '',
+                'direccion_shalom' => '',
             ];
 
-            // If delivery, fetch address details
             if ($pickupMethod === 'delivery') {
                 $address = DetalleDireccion::where('idDireccion', $idDireccion)
                     ->where('idUsuario', $user->idUsuario)
@@ -90,18 +84,10 @@ class PedidosController extends Controller
                 $orderData['distrito'] = $address->distrito;
                 $orderData['provincia'] = $address->provincia;
                 $orderData['direccion_shalom'] = $address->direccion_shalom;
-            } else {
-                // Store pickup: set address fields to empty or null
-                $orderData['departamento'] = '';
-                $orderData['distrito'] = '';
-                $orderData['provincia'] = '';
-                $orderData['direccion_shalom'] = '';
             }
 
-            // Create order
             $pedido = Pedido::create($orderData);
 
-            // Transfer cart details to pedido_detalle
             foreach ($cartDetails as $detail) {
                 PedidoDetalle::create([
                     'idPedido' => $pedido->idPedido,
@@ -113,10 +99,8 @@ class PedidosController extends Controller
                 ]);
             }
 
-            // Delete cart details
             CarritoDetalle::where('idCarrito', $idCarrito)->delete();
 
-            // Commit transaction
             DB::commit();
 
             return response()->json([
@@ -124,15 +108,13 @@ class PedidosController extends Controller
                 'message' => 'Pedido creado exitosamente.',
                 'data' => [
                     'idPedido' => $pedido->idPedido,
-                    'total' => $pedido->total,
-                    'estado' => $pedido->estado,
+                    'total' => number_format($pedido->total, 2),
+                    'estado' => $this->getEstadoText($pedido->estado),
                     'recojo_local' => $pedido->recojo_local,
-                    'fecha_pedido' => $pedido->fecha_pedido,
+                    'fecha_pedido' => $pedido->fecha_pedido->format('d/m/Y H:i'),
                 ]
             ], 201);
-
         } catch (\Exception $e) {
-            // Rollback transaction on error
             DB::rollBack();
             return response()->json([
                 'success' => false,
@@ -142,7 +124,7 @@ class PedidosController extends Controller
     }
 
     /**
-     * Fetch all orders for the authenticated user
+     * Fetch all orders for the authenticated user with details
      */
     public function index()
     {
@@ -150,22 +132,43 @@ class PedidosController extends Controller
             $user = Auth::user();
             $pedidos = Pedido::where('idUsuario', $user->idUsuario)
                 ->orderBy('fecha_pedido', 'desc')
+                ->with(['detalles.producto', 'detalles.modelo']) // Eager load details
                 ->get()
                 ->map(function ($pedido) {
-                    // Generate QR code for the order ID
-                    $qrCode = QrCode::format('png')
-                        ->size(200)
-                        ->generate($pedido->idPedido);
+                    $fechaPedido = is_string($pedido->fecha_pedido)
+                        ? Carbon::parse($pedido->fecha_pedido)
+                        : $pedido->fecha_pedido;
+
+                    $detalles = $pedido->detalles->map(function ($detalle) {
+                        $imagen = ImagenModelo::where('idModelo', $detalle->idModelo)
+                            ->first();
+
+                        return [
+                            'idDetallePedido' => $detalle->idDetallePedido,
+                            'producto' => [
+                                'idProducto' => $detalle->producto->idProducto,
+                                'nombreProducto' => $detalle->producto->nombreProducto,
+                                'precio' => number_format($detalle->precioUnitario, 2),
+                            ],
+                            'modelo' => [
+                                'idModelo' => $detalle->modelo->idModelo,
+                                'nombreModelo' => $detalle->modelo->nombreModelo,
+                                'imagen' => $imagen ? $imagen->urlImagen : null,
+                            ],
+                            'cantidad' => $detalle->cantidad,
+                            'subtotal' => number_format($detalle->subtotal, 2),
+                        ];
+                    });
 
                     return [
                         'idPedido' => $pedido->idPedido,
                         'total' => number_format($pedido->total, 2),
                         'estado' => $this->getEstadoText($pedido->estado),
                         'recojo_local' => $pedido->recojo_local,
-                        'direccion' => $pedido->recojo_local ? 'Recojo en tienda' : 
+                        'direccion' => $pedido->recojo_local ? 'Recojo en tienda' :
                             "{$pedido->direccion_shalom}, {$pedido->distrito}, {$pedido->provincia}, {$pedido->departamento}",
-                        'fecha_pedido' => $pedido->fecha_pedido->format('d/m/Y H:i'),
-                        'qr_code' => base64_encode($qrCode), // Base64 encoded QR code image
+                        'fecha_pedido' => $fechaPedido->format('d/m/Y H:i'),
+                        'detalles' => $detalles,
                     ];
                 });
 
@@ -178,70 +181,6 @@ class PedidosController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener los pedidos: ' . $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Fetch details for a specific order
-     */
-    public function show($id)
-    {
-        try {
-            $user = Auth::user();
-            $pedido = Pedido::where('idUsuario', $user->idUsuario)
-                ->where('idPedido', $id)
-                ->first();
-
-            if (!$pedido) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Pedido no encontrado',
-                ], 404);
-            }
-
-            $detalles = PedidoDetalle::where('idPedido', $id)
-                ->with(['producto', 'modelo'])
-                ->get()
-                ->map(function ($detalle) {
-                    $imagen = ImagenModelo::where('idModelo', $detalle->idModelo)
-                        ->first();
-
-                    return [
-                        'idDetallePedido' => $detalle->idDetallePedido,
-                        'producto' => [
-                            'idProducto' => $detalle->producto->idProducto,
-                            'nombreProducto' => $detalle->producto->nombreProducto,
-                            'precio' => number_format($detalle->precioUnitario, 2),
-                        ],
-                        'modelo' => [
-                            'idModelo' => $detalle->modelo->idModelo,
-                            'nombreModelo' => $detalle->modelo->nombreModelo,
-                            'imagen' => $imagen ? $imagen->urlImagen : null,
-                        ],
-                        'cantidad' => $detalle->cantidad,
-                        'subtotal' => number_format($detalle->subtotal, 2),
-                    ];
-                });
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'idPedido' => $pedido->idPedido,
-                    'total' => number_format($pedido->total, 2),
-                    'estado' => $this->getEstadoText($pedido->estado),
-                    'recojo_local' => $pedido->recojo_local,
-                    'direccion' => $pedido->recojo_local ? 'Recojo en tienda' : 
-                        "{$pedido->direccion_shalom}, {$pedido->distrito}, {$pedido->provincia}, {$pedido->departamento}",
-                    'fecha_pedido' => $pedido->fecha_pedido->format('d/m/Y H:i'),
-                    'detalles' => $detalles,
-                ],
-                'message' => 'Detalles del pedido obtenidos correctamente',
-            ], 200);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener los detalles del pedido: ' . $e->getMessage(),
             ], 500);
         }
     }
