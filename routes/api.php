@@ -12,6 +12,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PedidosController;
 
 /*
@@ -72,6 +73,10 @@ Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () {
   //RUTAS PARA PEDIDOS
   Route::post('/orders', [PedidosController::class, 'createOrder']);
   Route::get('/orders', [PedidosController::class, 'index']);
+  Route::post('/cancel-order', [PedidosController::class, 'cancelOrder']);
+  
+  // RUTAS PARA PAGOS
+  Route::post('/upload-receipt', [PaymentController::class, 'uploadReceipt']);
 
 });
 

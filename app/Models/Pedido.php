@@ -27,6 +27,10 @@ class Pedido extends Model
         'fecha_pedido',
     ];
 
+    protected $casts = [
+        'fecha_pedido' => 'datetime',
+    ];
+
      // Relación con el modelo Usuario
      public function usuario()
      {

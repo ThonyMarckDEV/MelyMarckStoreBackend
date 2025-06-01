@@ -184,6 +184,62 @@ class PedidosController extends Controller
             ], 500);
         }
     }
+    public function cancelOrder(Request $request)
+    {
+        try {
+            $request->validate([
+                'orderId' => 'required|exists:pedidos,idPedido',
+            ]);
+
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado.'
+                ], 401);
+            }
+
+            $orderId = $request->input('orderId');
+
+            $order = Pedido::where('idPedido', $orderId)
+                ->where('idUsuario', $user->idUsuario)
+                ->whereIn('estado', [0]) // Assuming 0 is "Pendiente de pago"
+                ->first();
+
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pedido no encontrado o no puede ser cancelado.'
+                ], 400);
+            }
+
+            DB::beginTransaction();
+            $order->update(['estado' => 5]); // Assuming 5 is "Cancelado"
+            DB::commit();
+
+            // Parse fecha_pedido if it's not already a Carbon instance
+            $fechaPedido = is_string($order->fecha_pedido)
+                ? Carbon::parse($order->fecha_pedido)->format('d/m/Y H:i')
+                : $order->fecha_pedido->format('d/m/Y H:i');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pedido cancelado exitosamente.',
+                'data' => [
+                    'idPedido' => $order->idPedido,
+                    'estado' => $this->getEstadoText($order->estado),
+                    'fecha_pedido' => $fechaPedido,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cancelar el pedido: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 
     /**
      * Helper function to convert estado code to text
