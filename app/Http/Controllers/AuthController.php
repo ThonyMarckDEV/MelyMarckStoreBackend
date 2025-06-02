@@ -139,7 +139,7 @@ class AuthController extends Controller
         ], 200);
     }
 
-   // Método para refrescar el token
+   // Método para refrescar el token de accesso
     public function refresh(Request $request)
     {
         // Validar el refresh token
@@ -194,9 +194,13 @@ class AuthController extends Controller
                 'email_verified' => $user->datos->email_verified,
                 'nombre' => $user->datos->nombre,
                 'apellido' => $user->datos->apellido,
-                'idCarrito' => $user->carrito->idCarrito,
                 'google_user' => $user->datos->google_user,
             ];
+
+             // Include idCarrito only if the user is not an admin
+            if ($user->rol->nombre !== 'admin') {
+                $accessPayload['idCarrito'] = $user->carrito->idCarrito;
+            }
             
             // Generar nuevo token de acceso usando Firebase JWT
             $newToken = \Firebase\JWT\JWT::encode($accessPayload, $secret, 'HS256');

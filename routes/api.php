@@ -38,7 +38,7 @@ Route::post('/validate-refresh-token', [AuthController::class, 'validateRefreshT
 Route::post('/usuarios', [UserController::class, 'store']);
 
 // Rutas publicas para home
-Route::get('/categories', [CategoriesController::class, 'index']);
+Route::get('/getCategories', [CategoriesController::class, 'index']);
 Route::get('/subcategories', [SubCategoriesController::class, 'index']);
 Route::get('/new-products', [ProductController::class, 'getNewProducts']);
 
@@ -83,7 +83,11 @@ Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () {
 // RUTAS PARA ADMIN VALIDADA POR MIDDLEWARE AUTH (PARA TOKEN JWT) Y CHECKROLE (PARA VALIDAR ROL DEL TOKEN)
 Route::middleware(['auth.jwt', 'checkRoleMW:admin'])->group(function () { 
 
-      
+  //RUTAS PARA CATEGORIAS
+  Route::get('/categories', [CategoriesController::class, 'indexAdmin'])->name('categories.index');
+  Route::post('/categories', [CategoriesController::class, 'store'])->name('categories.store');
+  Route::put('/categories/{id}', [CategoriesController::class, 'update'])->name('categories.update');
+  Route::patch('/categories/{id}/status', [CategoriesController::class, 'toggleStatus'])->name('categories.toggleStatus');
   
 });
 
