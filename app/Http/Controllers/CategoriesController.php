@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class CategoriesController extends Controller
 {
-   public function index()
+    public function index()
     {
         try {
             $categories = Categoria::active()
@@ -54,13 +54,15 @@ class CategoriesController extends Controller
             $category = new Categoria();
             $category->nombreCategoria = $validated['nombreCategoria'];
             $category->estado = true;
+            $category->save(); // Save first to get idCategoria
 
             if ($request->hasFile('imagen')) {
-                $path = $request->file('imagen')->store('categories', 'public');
-                $category->imagen = $path;
+                // Store image in storage/app/public/categories/{idCategoria}/
+                // Accessible via public/storage/categories/{idCategoria}/filename due to symbolic link
+                $path = $request->file('imagen')->store("categories/{$category->idCategoria}", 'public');
+                $category->imagen = $path; // Store relative path (e.g., categories/7/image.jpg)
+                $category->save();
             }
-
-            $category->save();
 
             return response()->json([
                 'success' => true,
@@ -82,9 +84,22 @@ class CategoriesController extends Controller
 
             $validated = $request->validate([
                 'nombreCategoria' => 'required|string|max:255',
+                'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
             $category->nombreCategoria = $validated['nombreCategoria'];
+
+            if ($request->hasFile('imagen')) {
+                // Delete old image if it exists
+                if ($category->imagen) {
+                    Storage::disk('public')->delete($category->imagen);
+                }
+                // Store new image in storage/app/public/categories/{idCategoria}/
+                // Accessible via public/storage/categories/{idCategoria}/filename
+                $path = $request->file('imagen')->store("categories/{$category->idCategoria}", 'public');
+                $category->imagen = $path; // Store relative path (e.g., categories/7/image.jpg)
+            }
+
             $category->save();
 
             return response()->json([
