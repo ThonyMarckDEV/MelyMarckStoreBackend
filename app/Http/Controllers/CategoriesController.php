@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class CategoriesController extends Controller
 {
     public function index()
     {
         try {
-            $categories = Categoria::active()
+            $categories = Categoria::where('estado', true)
                 ->select('idCategoria', 'nombreCategoria', 'imagen', 'estado')
                 ->get();
             return response()->json([
@@ -38,7 +39,7 @@ class CategoriesController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching all categories: ' . $e->getMessage()
+                'message' => 'Error fetching categories: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -47,20 +48,19 @@ class CategoriesController extends Controller
     {
         try {
             $validated = $request->validate([
-                'nombreCategoria' => 'required|string|max:255',
-                'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'nombreCategoria' => 'required|string|max:255', // Changed from nameType
+                'fileImage' => 'nullable|image|mimes:jpeg,jpg,gif|max:2048',
             ]);
 
             $category = new Categoria();
             $category->nombreCategoria = $validated['nombreCategoria'];
             $category->estado = true;
-            $category->save(); // Save first to get idCategoria
+            $category->save();
 
-            if ($request->hasFile('imagen')) {
-                // Store image in storage/app/public/categories/{idCategoria}/
-                // Accessible via public/storage/categories/{idCategoria}/filename due to symbolic link
-                $path = $request->file('imagen')->store("categories/{$category->idCategoria}", 'public');
-                $category->imagen = $path; // Store relative path (e.g., categories/7/image.jpg)
+            if ($request->hasFile('fileImage')) {
+                $filename = $request->file('fileImage')->getClientOriginalName();
+                $path = $request->file('fileImage')->storeAs("categories/{$category->idCategoria}", $filename, 'public');
+                $category->imagen = $path; // Changed from fileImage
                 $category->save();
             }
 
@@ -82,35 +82,120 @@ class CategoriesController extends Controller
         try {
             $category = Categoria::findOrFail($id);
 
-            $validated = $request->validate([
-                'nombreCategoria' => 'required|string|max:255',
-                'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            Log::info('Update category name request', [
+                'id' => $id,
+                'has_nombreCategoria' => $request->has('nombreCategoria'),
+                'nombreCategoria_value' => $request->input('nombreCategoria'),
+                'current_name' => $category->nombreCategoria,
             ]);
 
-            $category->nombreCategoria = $validated['nombreCategoria'];
+            $validated = $request->validate([
+                'nombreCategoria' => 'required|string|max:255', // Changed from nameType
+            ]);
 
-            if ($request->hasFile('imagen')) {
-                // Delete old image if it exists
-                if ($category->imagen) {
-                    Storage::disk('public')->delete($category->imagen);
-                }
-                // Store new image in storage/app/public/categories/{idCategoria}/
-                // Accessible via public/storage/categories/{idCategoria}/filename
-                $path = $request->file('imagen')->store("categories/{$category->idCategoria}", 'public');
-                $category->imagen = $path; // Store relative path (e.g., categories/7/image.jpg)
+            $hasChanges = false;
+
+            $newName = trim($request->input('nombreCategoria'));
+            if (!empty($newName) && $newName !== $category->nombreCategoria) {
+                $category->nombreCategoria = $newName;
+                $hasChanges = true;
+                Log::info('Name will be updated', ['old' => $category->nombreCategoria, 'new' => $newName]);
+            }
+
+            if (!$hasChanges) {
+                Log::info('No valid name changes detected', [
+                    'has_nombreCategoria' => $request->has('nombreCategoria'),
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No valid changes provided. Please update the category name.'
+                ], 400);
             }
 
             $category->save();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Category updated successfully',
+                'message' => 'Category name updated successfully',
                 'data' => $category
             ], 200);
-        } catch (\Exception $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::warning('Validation error', ['errors' => $e->errors()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Error updating category: ' . $e->getMessage()
+                'message' => 'Validation error',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error updating category name', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating category name: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateImage(Request $request, $id)
+    {
+        try {
+            $category = Categoria::findOrFail($id);
+
+            Log::info('Update category image request', [
+                'id' => $id,
+                'all' => $request->all(),
+                'files' => $request->files->all(),
+                'headers' => $request->headers->all(),
+                'content_type' => $request->header('Content-Type'),
+            ]);
+
+            Log::info('Image upload details', [
+                'id' => $id,
+                'has_fileImage' => $request->hasFile('fileImage'),
+                'image_details' => $request->hasFile('fileImage') ? [
+                    'name' => $request->file('fileImage')->getClientOriginalName(),
+                    'type' => $request->file('fileImage')->getMimeType(),
+                    'size' => $request->file('fileImage')->getSize() / 1024 . 'KB',
+                    'valid' => $request->file('fileImage')->isValid(),
+                ] : 'No image',
+            ]);
+
+            $validated = $request->validate([
+                'fileImage' => 'required|image|mimes:jpeg,jpg,gif|max:2048',
+            ]);
+
+            if ($request->hasFile('fileImage') && $request->file('fileImage')->isValid()) {
+                if ($category->imagen) { // Changed from fileImage
+                    Storage::disk('public')->delete($category->imagen);
+                }
+                $filename = $request->file('fileImage')->getClientOriginalName();
+                $path = $request->file('fileImage')->storeAs("categories/{$category->idCategoria}", $filename, 'public');
+                $category->imagen = $path; // Changed from fileImage
+                $category->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Category image updated successfully',
+                    'data' => $category
+                ], 200);
+            }
+
+            Log::warning('No valid image provided');
+            return response()->json([
+                'success' => false,
+                'message' => 'No valid image provided. Please select a JPEG, JPG, or GIF.'
+            ], 400);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::warning('Validation error', ['errors' => $e->errors()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error updating category image', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating category image: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -124,7 +209,7 @@ class CategoriesController extends Controller
                 'active' => 'required|boolean',
             ]);
 
-            $category->estado = $validated['active'];
+            $category->estado = $validated['active']; // Changed from state
             $category->save();
 
             return response()->json([
