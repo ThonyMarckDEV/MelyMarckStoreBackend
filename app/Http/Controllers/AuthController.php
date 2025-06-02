@@ -228,43 +228,6 @@ class AuthController extends Controller
         }
     }
 
-    // // In your AuthController.php
-    // public function validateRefreshToken(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'refresh_token_id' => 'required',
-    //         'userID' => 'required'
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'valid' => false,
-    //             'message' => 'Datos inválidos'
-    //         ], 400);
-    //     }
-
-    //     // Buscar el token en la base de datos
-    //     $refreshToken = DB::table('refresh_tokens')
-    //         ->where('idToken', $request->refresh_token_id)
-    //         ->where('idUsuario', $request->userID)
-    //         ->first();
-
-    //     // Si no existe o no coincide, significa que este token ya no es válido
-    //     // (posiblemente porque el usuario inició sesión en otro dispositivo)
-    //     if (!$refreshToken) {
-    //         return response()->json([
-    //             'valid' => false,
-    //             'message' => 'Token no válido o expirado'
-    //         ], 200);
-    //     }
-
-    //     return response()->json([
-    //         'valid' => true,
-    //         'message' => 'Token válido'
-    //     ], 200);
-    // }
-
-
      // In your AuthController.php
     public function validateRefreshToken(Request $request)
     {
