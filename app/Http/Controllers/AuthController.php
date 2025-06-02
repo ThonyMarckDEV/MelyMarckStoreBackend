@@ -70,15 +70,19 @@ class AuthController extends Controller
             'email_verified' => $user->datos->email_verified,
             'nombre' => $user->datos->nombre,
             'apellido' => $user->datos->apellido,
-            'idCarrito' => $user->carrito->idCarrito,
             'google_user' => $user->datos->google_user,
         ];
+
+        // Include idCarrito only if the user is not an admin
+        if ($user->rol->nombre !== 'admin') {
+            $accessPayload['idCarrito'] = $user->carrito->idCarrito;
+        }
 
         // Refresh token payload
         $refreshPayload = [
             'iss' => config('app.url'),
             'iat' => $now,
-            'exp' => $now + $expiresIn,
+            'exp' => $now + $refreshTTL,
             'nbf' => $now,
             'jti' => Str::random(16),
             'sub' => $user->idUsuario,
@@ -89,9 +93,13 @@ class AuthController extends Controller
             'email_verified' => $user->datos->email_verified,
             'nombre' => $user->datos->nombre,
             'apellido' => $user->datos->apellido,
-            'idCarrito' => $user->carrito->idCarrito,
             'google_user' => $user->datos->google_user,
         ];
+
+        // Include idCarrito only if the user is not an admin
+        if ($user->rol->nombre !== 'admin') {
+            $refreshPayload['idCarrito'] = $user->carrito->idCarrito;
+        }
 
         // Generar tokens
         $accessToken = \Firebase\JWT\JWT::encode($accessPayload, $secret, 'HS256');
