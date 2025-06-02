@@ -89,6 +89,12 @@ Route::middleware(['auth.jwt', 'checkRoleMW:admin'])->group(function () {
   Route::put('/categories/{id}', [CategoriesController::class, 'update'])->name('categories.update');
   Route::put( '/categories/{id}/image', [CategoriesController::class, 'updateImage'])->name('categories.updateImage');
   Route::patch('/categories/{id}/status', [CategoriesController::class, 'toggleStatus'])->name('categories.toggleStatus');
+
+  //RUTAS PARA SUBCATEGORIAS\
+  Route::get('/subcategories/admin', [SubCategoriesController::class, 'indexAdmin']);
+  Route::post('/subcategories', [SubCategoriesController::class, 'store']);
+  Route::put('/subcategories/{id}', [SubCategoriesController::class, 'update']);
+  Route::patch('/subcategories/{id}/status', [SubCategoriesController::class, 'toggleStatus']);
   
 });
 

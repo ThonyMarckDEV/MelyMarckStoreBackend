@@ -13,7 +13,6 @@ class CrearTablaSubCategorias extends Migration
         Schema::create('subcategorias', function (Blueprint $table) {
             $table->bigIncrements('idSubCategoria'); // Clave primaria con bigIncrements (unsignedBigInteger)
             $table->string('nombreSubCategoria');
-            $table->string('imagen')->nullable(); // Imagen puede ser nula
             $table->boolean('estado')->default(true); // Estado por defecto a true
 
             // Clave foránea

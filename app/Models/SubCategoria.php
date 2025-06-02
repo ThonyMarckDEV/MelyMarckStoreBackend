@@ -18,7 +18,6 @@ class SubCategoria extends Model
 
     protected $fillable = [
         'nombreSubCategoria',
-        'imagen',
         'estado',
     ];
 
