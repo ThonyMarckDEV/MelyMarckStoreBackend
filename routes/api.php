@@ -87,7 +87,7 @@ Route::middleware(['auth.jwt', 'checkRoleMW:admin'])->group(function () {
   Route::get('/categories', [CategoriesController::class, 'indexAdmin'])->name('categories.index');
   Route::post('/categories', [CategoriesController::class, 'store'])->name('categories.store');
   Route::put('/categories/{id}', [CategoriesController::class, 'update'])->name('categories.update');
-  Route::put('/categories/{id}/image', [CategoriesController::class, 'updateImage'])->name('categories.updateImage');
+  Route::put( '/categories/{id}/image', [CategoriesController::class, 'updateImage'])->name('categories.updateImage');
   Route::patch('/categories/{id}/status', [CategoriesController::class, 'toggleStatus'])->name('categories.toggleStatus');
   
 });

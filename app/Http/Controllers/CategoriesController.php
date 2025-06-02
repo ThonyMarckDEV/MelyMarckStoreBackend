@@ -140,36 +140,17 @@ class CategoriesController extends Controller
         try {
             $category = Categoria::findOrFail($id);
 
-            Log::info('Update category image request', [
-                'id' => $id,
-                'all' => $request->all(),
-                'files' => $request->files->all(),
-                'headers' => $request->headers->all(),
-                'content_type' => $request->header('Content-Type'),
-            ]);
-
-            Log::info('Image upload details', [
-                'id' => $id,
-                'has_fileImage' => $request->hasFile('fileImage'),
-                'image_details' => $request->hasFile('fileImage') ? [
-                    'name' => $request->file('fileImage')->getClientOriginalName(),
-                    'type' => $request->file('fileImage')->getMimeType(),
-                    'size' => $request->file('fileImage')->getSize() / 1024 . 'KB',
-                    'valid' => $request->file('fileImage')->isValid(),
-                ] : 'No image',
-            ]);
-
             $validated = $request->validate([
                 'fileImage' => 'required|image|mimes:jpeg,jpg,gif|max:2048',
             ]);
 
             if ($request->hasFile('fileImage') && $request->file('fileImage')->isValid()) {
-                if ($category->imagen) { // Changed from fileImage
+                if ($category->imagen) {
                     Storage::disk('public')->delete($category->imagen);
                 }
                 $filename = $request->file('fileImage')->getClientOriginalName();
                 $path = $request->file('fileImage')->storeAs("categories/{$category->idCategoria}", $filename, 'public');
-                $category->imagen = $path; // Changed from fileImage
+                $category->imagen = $path;
                 $category->save();
 
                 return response()->json([
