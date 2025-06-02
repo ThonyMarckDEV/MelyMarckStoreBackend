@@ -25,6 +25,11 @@ class ProductController extends Controller
             $query = Producto::with(['modelos.stock', 'modelos.imagenes', 'caracteristicasProducto'])
                 ->where('estado', true);
 
+            // Filter by active category
+            $query->whereHas('subcategoria.categoria', function ($q) {
+                $q->where('estado', true);
+            });
+
             // Filter by subcategory_id
             if ($subcategoryId) {
                 $query->where('idSubCategoria', $subcategoryId);
