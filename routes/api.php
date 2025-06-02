@@ -80,18 +80,18 @@ Route::middleware(['auth.jwt', 'checkRoleMW:cliente'])->group(function () {
 
 });
 
-// RUTAS PARA X VALIDADA POR MIDDLEWARE AUTH (PARA TOKEN JWT) Y CHECKROLE (PARA VALIDAR ROL DEL TOKEN)
-Route::middleware(['auth.jwt', 'checkRoleMW:role2'])->group(function () { 
+// RUTAS PARA ADMIN VALIDADA POR MIDDLEWARE AUTH (PARA TOKEN JWT) Y CHECKROLE (PARA VALIDAR ROL DEL TOKEN)
+Route::middleware(['auth.jwt', 'checkRoleMW:admin'])->group(function () { 
 
       
   
 });
 
 
-// RUTAS PARA Roles X y X ....
+// RUTAS PARA Roles Admin y Cliente
 Route::middleware(['auth.jwt', 'checkRolesMW'])->group(function () { 
 
-      
+    Route::post('/logout', [AuthController::class, 'logout']);
   
 });
 

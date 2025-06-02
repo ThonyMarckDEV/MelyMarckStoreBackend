@@ -19,7 +19,7 @@ class CheckRolesMW
     {
         // Si no se pasan roles como parámetros, permitimos los roles cliente y manager por defecto
         if (empty($roles)) {
-            $roles = ['cliente', 'admin' , 'manager'];
+            $roles = ['cliente', 'admin'];
         }
 
         // Verificar que el usuario está autenticado y el payload está disponible
